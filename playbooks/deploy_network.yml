@@ -2,17 +2,44 @@
 ---
 - name: Deploy GNS3 Network
   hosts: gns3_servers
-  gather_facts: yes
+  gather_facts: no
   
-  pre_tasks:
-    - name: Display Python version
-      debug:
-        var: ansible_python_version
+  vars:
+    gns3_url: "http://192.168.238.128:80"
+    gns3_project_name: "ansible_test_network"
   
   tasks:
-    - name: "Create network topology"
+    - name: Ensure Python 3 and pip are installed
+      raw: |
+        if ! command -v python3 &> /dev/null; then
+          sudo apt update
+          sudo apt install -y python3
+        fi
+        if ! command -v pip3 &> /dev/null; then
+          sudo apt install -y python3-pip
+        fi
+      args:
+        executable: /bin/bash
+      register: python_install
+      changed_when: python_install.stdout_lines|length > 0
+    
+    - name: Gather facts
+      setup:
+    
+    - name: Install required Python packages
+      pip:
+        name: 
+          - gns3fy
+          - requests
+        state: present
+    
+    - name: Create network topology
       davidban77.gns3.gns3_project:
         url: "{{ gns3_url }}"
         project_name: "{{ gns3_project_name }}"
         state: present
       register: project
+    
+    - name: Display project details
+      debug:
+        var: project

@@ -1,22 +1,22 @@
-# playbooks/test_python.yml
+# playbooks/verify_python.yml
 ---
-- name: Test Python Installation
+- name: Verify Python Setup
   hosts: gns3_servers
   gather_facts: no
-  
+
   tasks:
-    - name: Check Python version
-      raw: python3 --version
-      register: python_version
-      
-    - name: Display Python version
+    - name: Check Python with raw module
+      raw: which python3
+      register: python_path
+
+    - name: Display Python path
       debug:
-        var: python_version.stdout_lines
-        
-    - name: Check pip installation
-      raw: pip3 --version
-      register: pip_version
-      
-    - name: Display pip version
+        var: python_path.stdout_lines
+
+    - name: Verify Python can execute
+      raw: python3 -c "print('Python works!')"
+      register: python_test
+
+    - name: Display Python test result
       debug:
-        var: pip_version.stdout_lines
+        var: python_test.stdout_lines
