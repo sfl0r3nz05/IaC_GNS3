@@ -1,0 +1,15 @@
+# group_vars/all.yml
+---
+ansible_user: gns3
+ansible_ssh_pass: gns3
+gns3_project_name: "ansible_network"
+
+routers:
+  - name: "R1"
+    template: "Cisco IOSv"
+    x: 0
+    y: 0
+  - name: "R2"
+    template: "Cisco IOSv"
+    x: 100
+    y: 0

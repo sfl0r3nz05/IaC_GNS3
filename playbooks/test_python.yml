@@ -1,0 +1,22 @@
+# playbooks/test_python.yml
+---
+- name: Test Python Installation
+  hosts: gns3_servers
+  gather_facts: no
+  
+  tasks:
+    - name: Check Python version
+      raw: python3 --version
+      register: python_version
+      
+    - name: Display Python version
+      debug:
+        var: python_version.stdout_lines
+        
+    - name: Check pip installation
+      raw: pip3 --version
+      register: pip_version
+      
+    - name: Display pip version
+      debug:
+        var: pip_version.stdout_lines

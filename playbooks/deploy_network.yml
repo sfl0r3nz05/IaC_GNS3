@@ -1,0 +1,18 @@
+# playbooks/deploy_network.yml
+---
+- name: Deploy GNS3 Network
+  hosts: gns3_servers
+  gather_facts: yes
+  
+  pre_tasks:
+    - name: Display Python version
+      debug:
+        var: ansible_python_version
+  
+  tasks:
+    - name: "Create network topology"
+      davidban77.gns3.gns3_project:
+        url: "{{ gns3_url }}"
+        project_name: "{{ gns3_project_name }}"
+        state: present
+      register: project
