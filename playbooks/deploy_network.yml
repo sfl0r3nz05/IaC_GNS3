@@ -3,7 +3,7 @@
     hosts: gns3_servers
     gather_facts: no
     vars:
-      gns3_url: "http://192.168.204.128"
+      gns3_url: "http://192.168.238.128"
       gns3_port: 80
       gns3_project_name: "ansible_test_network"
       project_config:
