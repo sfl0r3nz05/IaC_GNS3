@@ -1,45 +1,50 @@
-# playbooks/deploy_network.yml
 ---
-- name: Deploy GNS3 Network
-  hosts: gns3_servers
-  gather_facts: no
+  - name: Deploy GNS3 Network
+    hosts: gns3_servers
+    gather_facts: no
+    vars:
+      gns3_url: "http://192.168.204.128"
+      gns3_port: 80
+      gns3_project_name: "ansible_test_network"
+      project_config:
+        name: "{{ gns3_project_name }}"
+        auto_close: true
+        auto_open: false
+        auto_start: false
+        drawing_grid_size: 25
+        grid_size: 75
+        scene_height: 1000
+        scene_width: 2000
+        show_grid: false
+        show_interface_labels: false
+        snap_to_grid: false
+        zoom: 100
+    
+    tasks:
+      - name: Create GNS3 project
+        uri:
+          url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects"
+          method: POST
+          body_format: json
+          body: "{{ project_config }}"
+          status_code: [200, 201]
+        register: project_result
   
-  vars:
-    gns3_url: "http://192.168.238.128:80"
-    gns3_project_name: "ansible_test_network"
+      - name: Display project details
+        debug:
+          var: project_result.json
   
-  tasks:
-    - name: Ensure Python 3 and pip are installed
-      raw: |
-        if ! command -v python3 &> /dev/null; then
-          sudo apt update
-          sudo apt install -y python3
-        fi
-        if ! command -v pip3 &> /dev/null; then
-          sudo apt install -y python3-pip
-        fi
-      args:
-        executable: /bin/bash
-      register: python_install
-      changed_when: python_install.stdout_lines|length > 0
-    
-    - name: Gather facts
-      setup:
-    
-    - name: Install required Python packages
-      pip:
-        name: 
-          - gns3fy
-          - requests
-        state: present
-    
-    - name: Create network topology
-      davidban77.gns3.gns3_project:
-        url: "{{ gns3_url }}"
-        project_name: "{{ gns3_project_name }}"
-        state: present
-      register: project
-    
-    - name: Display project details
-      debug:
-        var: project
+      - name: Save project ID for future use
+        set_fact:
+          project_id: "{{ project_result.json.project_id }}"
+  
+      - name: Verify project status
+        uri:
+          url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}"
+          method: GET
+          status_code: 200
+        register: project_status
+  
+      - name: Display project status
+        debug:
+          var: project_status.json
