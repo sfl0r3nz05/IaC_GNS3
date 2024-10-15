@@ -2,26 +2,9 @@
 - name: Deploy GNS3 Network with Cisco Routers
   hosts: gns3_servers
   gather_facts: no
-  vars:
-    gns3_url: "http://192.168.238.128"
-    gns3_port: 80
-    gns3_project_name: "ansible_test_network_10"
-    cisco_template_name: "Cisco 7200"
-    cisco_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
-    cisco_image_path: "/home/gns3/GNS3/images/IOS"  # Update this path
-    project_config:
-      name: "{{ gns3_project_name }}"
-      auto_close: true
-      auto_open: false
-      auto_start: false
-      drawing_grid_size: 25
-      grid_size: 75
-      scene_height: 1000
-      scene_width: 2000
-      show_grid: false
-      show_interface_labels: false
-      snap_to_grid: false
-      zoom: 100
+  vars_files:
+    - ../group_vars/all.yaml
+
   tasks:
     - name: Get GNS3 version
       uri:
@@ -58,12 +41,6 @@
         cisco_template_id: "{{ item.template_id }}"
       loop: "{{ templates_result.json }}"
       when: item.name == cisco_template_name
-
-    - name: Set router coordinates
-      set_fact:
-        router_coords:
-          - { name: "R1", x: 100, y: 0 }
-          - { name: "R2", x: 200, y: 0 }
 
     - name: Deploy Cisco 7200 routers
       uri:

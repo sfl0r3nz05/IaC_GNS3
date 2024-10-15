@@ -1,15 +1,22 @@
-# group_vars/all.yml
 ---
-ansible_user: gns3
-ansible_ssh_pass: gns3
-gns3_project_name: "ansible_network"
+cisco_template_name: "Cisco 7200"
+cisco_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
+cisco_image_path: "/home/gns3/GNS3/images/IOS"
 
-routers:
-  - name: "R1"
-    template: "Cisco IOSv"
-    x: 0
-    y: 0
-  - name: "R2"
-    template: "Cisco IOSv"
-    x: 100
-    y: 0
+router_coords:
+  - { name: "R1", x: 100, y: 0 }
+  - { name: "R2", x: 200, y: 0 }
+
+project_config:
+  name: "{{ gns3_project_name }}"
+  auto_close: true
+  auto_open: false
+  auto_start: false
+  drawing_grid_size: 25
+  grid_size: 75
+  scene_height: 1000
+  scene_width: 2000
+  show_grid: false
+  show_interface_labels: false
+  snap_to_grid: false
+  zoom: 100
