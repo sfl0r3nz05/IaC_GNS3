@@ -5,7 +5,7 @@
   vars:
     gns3_url: "http://192.168.238.128"
     gns3_port: 80
-    gns3_project_name: "ansible_test_network_5"
+    gns3_project_name: "ansible_test_network_10"
     cisco_template_name: "Cisco 7200"
     cisco_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
     cisco_image_path: "/home/gns3/GNS3/images/IOS"  # Update this path
@@ -31,7 +31,7 @@
 
     - name: Display GNS3 version
       debug:
-        var: gns3_version
+        var: gns3_version.json
 
     - name: Create GNS3 project
       uri:
@@ -42,28 +42,9 @@
         status_code: [200, 201]
       register: project_result
 
-    - name: Display project details
-      debug:
-        var: project_result.json
-
     - name: Save project ID
       set_fact:
         project_id: "{{ project_result.json.project_id }}"
-
-    - name: Display project ID
-      debug:
-        var: project_id
-
-    - name: Verify project status
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}"
-        method: GET
-        status_code: 200
-      register: project_status
-
-    - name: Display project status
-      debug:
-        var: project_status.json
 
     - name: Get Cisco 7200 template details
       uri:
@@ -78,20 +59,11 @@
       loop: "{{ templates_result.json }}"
       when: item.name == cisco_template_name
 
-    - name: Display Cisco 7200 template ID
-      debug:
-        var: cisco_template_id
-
     - name: Set router coordinates
       set_fact:
         router_coords:
           - { name: "R1", x: 100, y: 0 }
           - { name: "R2", x: 200, y: 0 }
-
-    - name: Debug router deployment data
-      debug:
-        msg: "Sending data: {{ item | to_json }}"
-      loop: "{{ router_coords }}"
 
     - name: Deploy Cisco 7200 routers
       uri:
@@ -103,15 +75,16 @@
       loop: "{{ router_coords }}"
       register: router_results
 
-    - name: Display router deployment results
-      debug:
-        var: router_results
-
     - name: Start the project
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/open"
         method: POST
-        status_code: 200
+        status_code: [200, 201]
+      register: start_result
+
+    - name: Display start project result
+      debug:
+        var: start_result
 
     - name: Verify project is running
       uri:
@@ -123,3 +96,12 @@
     - name: Display final project status
       debug:
         var: final_project_status.json
+
+    - name: Project deployment summary
+      debug:
+        msg: |
+          GNS3 Project Deployment Summary:
+          - Project Name: {{ gns3_project_name }}
+          - Project ID: {{ project_id }}
+          - Routers Deployed: {{ router_coords | length }}
+          - Project Status: {{ final_project_status.json.status }}
