@@ -1,4 +1,4 @@
-# IaC
+# DevSecOps for Infrastructure As Code
 
 ## Prerequisites
 
@@ -34,9 +34,15 @@ ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 
 ## Current status
 
-![alt text](documentation/status.png)
+![alt text](documentation/status_v2.png)
 
 
 ## Troubleshooting
 
 If you encounter any issues, check the Ansible log file at `~/ansible.log` for detailed error messages.
+
+## To Do
+
+1. Improve architecture 
+2. Add security layer
+3. Add automation layer
