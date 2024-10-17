@@ -1,5 +1,5 @@
 ---
-- name: Deploy Leaf-Spine Network with Border Router in GNS3
+- name: Deploy Enterprise Network in GNS3
   hosts: gns3_servers
   gather_facts: no
   vars_files:
@@ -53,6 +53,31 @@
       loop: "{{ devices }}"
       register: device_results
 
+    - name: Deploy VPCS nodes
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes"
+        method: POST
+        body_format: json
+        body: "{{ {'name': item.name, 'node_type': 'vpcs', 'compute_id': 'local', 'x': item.x|int, 'y': item.y|int} | to_json }}"
+        status_code: 201
+      loop: "{{ vpcs_nodes }}"
+      register: vpcs_results
+
+    - name: Create device ID map
+      set_fact:
+        device_id_map: "{{ device_id_map | default({}) | combine({item.json.name: item.json.node_id}) }}"
+      loop: "{{ device_results.results + vpcs_results.results }}"
+
+    - name: Create links between devices
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/links"
+        method: POST
+        body_format: json
+        body: "{{ {'nodes': [{'node_id': device_id_map[item.node_a], 'adapter_number': 0, 'port_number': 0}, {'node_id': device_id_map[item.node_b], 'adapter_number': 0, 'port_number': 0}]} | to_json }}"
+        status_code: 201
+      loop: "{{ links }}"
+      register: link_results
+
     - name: Start the project
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/open"
@@ -78,8 +103,10 @@
     - name: Project deployment summary
       debug:
         msg: |
-          GNS3 Leaf-Spine Network Deployment Summary:
+          GNS3 Enterprise Network Deployment Summary:
           - Project Name: {{ gns3_project_name }}
           - Project ID: {{ project_id }}
           - Devices Deployed: {{ devices | length }}
+          - VPCS Nodes Deployed: {{ vpcs_nodes | length }}
+          - Links Created: {{ links | length }}
           - Project Status: {{ final_project_status.json.status }}
