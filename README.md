@@ -32,7 +32,7 @@ sudo apt-get -y install python-is-python3
 ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 ```
 
-## Current status
+## Current status of automatic deployment of Spine-leaf architecture
 
 ![alt text](documentation/actual_net.png)
 
