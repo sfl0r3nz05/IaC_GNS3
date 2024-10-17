@@ -1,11 +1,22 @@
 ---
-cisco_template_name: "Cisco 7200"
-cisco_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
-cisco_image_path: "/home/gns3/GNS3/images/IOS"
+cisco_7200_template_name: "Cisco 7200"
+cisco_7200_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
+cisco_7200_image_path: "/home/gns3/GNS3/images/IOS"
 
-router_coords:
-  - { name: "R1", x: 100, y: 0 }
-  - { name: "R2", x: 200, y: 0 }
+cisco_iosvl2_template_name: "Cisco IOSvL2 15.2"
+cisco_iosvl2_image_name: "vios_l2-adventerprisek9-m.03.2017.qcow2"
+cisco_iosvl2_image_path: "/home/gns3/GNS3/images/QEMU"
+
+gns3_project_name: "leaf_spine_network_v1"
+
+devices:
+  - { name: "Border-R1", template: "{{ cisco_7200_template_name }}", x: 0, y: -200 }
+  - { name: "Spine1", template: "{{ cisco_iosvl2_template_name }}", x: -200, y: 0 }
+  - { name: "Spine2", template: "{{ cisco_iosvl2_template_name }}", x: 200, y: 0 }
+  - { name: "Leaf1", template: "{{ cisco_iosvl2_template_name }}", x: -300, y: 200 }
+  - { name: "Leaf2", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: 200 }
+  - { name: "Leaf3", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: 200 }
+  - { name: "Leaf4", template: "{{ cisco_iosvl2_template_name }}", x: 300, y: 200 }
 
 project_config:
   name: "{{ gns3_project_name }}"

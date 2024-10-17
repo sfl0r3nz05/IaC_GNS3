@@ -1,5 +1,5 @@
 ---
-- name: Deploy GNS3 Network with Cisco Routers
+- name: Deploy Leaf-Spine Network with Border Router in GNS3
   hosts: gns3_servers
   gather_facts: no
   vars_files:
@@ -29,28 +29,29 @@
       set_fact:
         project_id: "{{ project_result.json.project_id }}"
 
-    - name: Get Cisco 7200 template details
+    - name: Get template details
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
         method: GET
         status_code: 200
       register: templates_result
 
-    - name: Find Cisco 7200 template ID
+    - name: Find template IDs
       set_fact:
-        cisco_template_id: "{{ item.template_id }}"
+        cisco_7200_template_id: "{{ item.template_id }}"
+        cisco_iosvl2_template_id: "{{ item.template_id }}"
       loop: "{{ templates_result.json }}"
-      when: item.name == cisco_template_name
+      when: item.name == cisco_7200_template_name or item.name == cisco_iosvl2_template_name
 
-    - name: Deploy Cisco 7200 routers
+    - name: Deploy devices
       uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/templates/{{ cisco_template_id }}"
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/templates/{{ item.template | regex_replace('Cisco 7200', cisco_7200_template_id) | regex_replace('Cisco IOSvL2 15.2', cisco_iosvl2_template_id) }}"
         method: POST
         body_format: json
         body: "{{ {'name': item.name, 'x': item.x|int, 'y': item.y|int} | to_json }}"
         status_code: 201
-      loop: "{{ router_coords }}"
-      register: router_results
+      loop: "{{ devices }}"
+      register: device_results
 
     - name: Start the project
       uri:
@@ -77,8 +78,8 @@
     - name: Project deployment summary
       debug:
         msg: |
-          GNS3 Project Deployment Summary:
+          GNS3 Leaf-Spine Network Deployment Summary:
           - Project Name: {{ gns3_project_name }}
           - Project ID: {{ project_id }}
-          - Routers Deployed: {{ router_coords | length }}
+          - Devices Deployed: {{ devices | length }}
           - Project Status: {{ final_project_status.json.status }}
