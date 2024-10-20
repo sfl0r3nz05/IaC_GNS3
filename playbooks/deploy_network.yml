@@ -177,7 +177,22 @@
         - Core2
       register: interface_config_results
 
-    - name: Reload Core routers to apply interface changes
+    - name: Configure additional interfaces on Core routers
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}"
+        method: PUT
+        body_format: json
+        body:
+          properties:
+            slot1: PA-FE-TX
+            slot2: PA-FE-TX
+        status_code: [200, 201, 204]
+      loop:
+        - Core1
+        - Core2
+      register: core_config_results
+    
+    - name: Reload Core routers
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/reload"
         method: POST
@@ -185,11 +200,26 @@
       loop:
         - Core1
         - Core2
-      register: reload_results
+      register: core_reload_results
 
     - name: Wait for Core routers to come back online
       wait_for:
         timeout: 60
+
+    - name: Get updated node information
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}"
+        method: GET
+      loop:
+        - Core1
+        - Core2
+      register: updated_core_info
+    
+    - name: Update port and adapter maps for Core routers
+      set_fact:
+        port_map: "{{ port_map | combine({item.json.name: item.json.ports | map(attribute='port_number') | map('int') | list}) }}"
+        adapter_map: "{{ adapter_map | combine({item.json.name: item.json.ports | map(attribute='adapter_number') | map('int') | list}) }}"
+      loop: "{{ updated_core_info.results }}"
 
     - name: Debug interface configuration results
       debug:
