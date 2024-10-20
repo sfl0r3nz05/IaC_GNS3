@@ -7,7 +7,7 @@ cisco_iosvl2_template_name: "Cisco IOSvL2 15.2(4.0.55)E"
 cisco_iosvl2_image_name: "vios_l2-adventerprisek9-m.vmdk.SSA.152-4.0.55.E"
 cisco_iosvl2_image_path: "/opt/gns3/images/QEMU"
 
-gns3_project_name: "enterprise_network_v7"
+gns3_project_name: "enterprise_network_v0"
 
 qemu_path: "/usr/bin/qemu-system-x86_64"
 
