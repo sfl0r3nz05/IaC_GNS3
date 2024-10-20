@@ -78,12 +78,17 @@
         method: GET
       register: updated_templates
 
-    - name: Find template IDs
+    - name: Find C7200 template IDs
       set_fact:
         cisco_7200_template_id: "{{ item.template_id }}"
+      loop: "{{ updated_templates.json }}"
+      when: item.name == cisco_7200_template_name
+
+    - name: Find IOSvL2 template ID
+      set_fact:
         cisco_iosvl2_template_id: "{{ item.template_id }}"
       loop: "{{ updated_templates.json }}"
-      when: item.name == cisco_7200_template_name or item.name == cisco_iosvl2_template_name
+      when: item.name == cisco_iosvl2_template_name
 
     - name: Deploy devices
       uri:
@@ -146,10 +151,53 @@
         adapter_map: "{{ adapter_map | default({}) | combine({item.json.name: item.json.ports | map(attribute='adapter_number') | map('int') | list}) }}"
       loop: "{{ node_details.results }}"
 
-    - name: Debug port and adapter information
+    - name: Debug port and adapter mapping
       debug:
-        msg: "Device: {{ item.json.name }}, Ports: {{ port_map[item.json.name] }}, Adapters: {{ adapter_map[item.json.name] }}"
-      loop: "{{ node_details.results }}"
+        msg: |
+          Port Map: {{ port_map | to_yaml }}
+          Adapter Map: {{ adapter_map | to_yaml }}
+
+    - name: Configure additional interfaces on Core routers
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/files/configs/startup-config.cfg"
+        method: POST
+        body: |
+          configure terminal
+          interface FastEthernet1/0
+          no shutdown
+          exit
+          interface FastEthernet2/0
+          no shutdown
+          exit
+          end
+          copy running-config startup-config
+        status_code: [200, 201, 204]
+      loop:
+        - Core1
+        - Core2
+      register: interface_config_results
+
+    - name: Reload Core routers to apply interface changes
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/reload"
+        method: POST
+        status_code: [200, 201, 204]
+      loop:
+        - Core1
+        - Core2
+      register: reload_results
+
+    - name: Wait for Core routers to come back online
+      wait_for:
+        timeout: 60
+
+    - name: Debug interface configuration results
+      debug:
+        var: interface_config_results
+
+    - name: Debug reload results
+      debug:
+        var: reload_results
 
     - name: Create links between devices
       uri:
@@ -161,19 +209,26 @@
             "nodes": [
               {
                 "node_id": "{{ device_id_map[item.node_a] }}",
-                "adapter_number": {{ adapter_map[item.node_a][item.port_a | int] }},
-                "port_number": {{ port_map[item.node_a][item.port_a | int] }}
+                "adapter_number": {% if 'Core' in item.node_a %}{{ item.port_a | int }}{% else %}{{ adapter_map[item.node_a][item.port_a | int] | default(0) }}{% endif %},
+                "port_number": {% if 'Core' in item.node_a %}0{% else %}{{ port_map[item.node_a][item.port_a | int] | default(item.port_a) }}{% endif %}
               },
               {
                 "node_id": "{{ device_id_map[item.node_b] }}",
-                "adapter_number": {{ adapter_map[item.node_b][item.port_b | int] }},
-                "port_number": {{ port_map[item.node_b][item.port_b | int] }}
+                "adapter_number": {% if 'Core' in item.node_b %}{{ item.port_b | int }}{% else %}{{ adapter_map[item.node_b][item.port_b | int] | default(0) }}{% endif %},
+                "port_number": {% if 'Core' in item.node_b %}0{% else %}{{ port_map[item.node_b][item.port_b | int] | default(item.port_b) }}{% endif %}
               }
             ]
           }
         status_code: [201, 409]  # 409 for already exists
       loop: "{{ links }}"
       register: link_results
+
+    - name: Debug link creation results
+      debug:
+        msg: "Link creation result for {{ item.item.node_a }} (port {{ item.item.port_a }}) to {{ item.item.node_b }} (port {{ item.item.port_b }}): {{ item.status }}"
+      loop: "{{ link_results.results }}"
+      loop_control:
+        label: "{{ item.item.node_a }} to {{ item.item.node_b }}"
 
     - name: Start the project
       uri:
@@ -199,15 +254,3 @@
           - VPCS Nodes Deployed: {{ vpcs_nodes | length }}
           - Total Links Created: {{ links | length }}
           - Project Status: {{ final_project_status.json.status }}
-
-    - name: Display link creation results
-      debug:
-        msg: "Link creation results: {{ link_results.results | map(attribute='status') | list }}"
-
-    - name: Count successful link creations
-      set_fact:
-        successful_links: "{{ link_results.results | selectattr('status', 'in', [201, 409]) | list | length }}"
-
-    - name: Display successful link count
-      debug:
-        msg: "Successfully created or already existing links: {{ successful_links }} out of {{ links | length }}"
