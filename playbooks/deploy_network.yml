@@ -6,20 +6,13 @@
     - ../group_vars/all.yaml
 
   tasks:
-
-    - name: Get GNS3 version
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/version"
-        method: GET
-      register: gns3_version
-
     - name: Create GNS3 project
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects"
         method: POST
         body_format: json
         body: "{{ project_config | to_json }}"
-        status_code: [201, 409]  # 409 for already exists
+        status_code: [201, 409]
       register: project_result
 
     - name: Set project ID
@@ -41,16 +34,14 @@
           name: "{{ cisco_7200_template_name }}"
           compute_id: "local"
           template_type: "dynamips"
-          image: "{{ cisco_7200_image_path }}/{{ cisco_7200_image_name }}"  # Full path to the image
+          image: "{{ cisco_7200_image_path }}/{{ cisco_7200_image_name }}"
           symbol: ":/symbols/router.svg"
           category: "router"
           ram: 512
           nvram: 128
-        status_code: [200, 201, 409]  # 409 for already exists
-      register: cisco_7200_template_result
+        status_code: [200, 201, 409]
       when: cisco_7200_template_name not in (existing_templates.json | map(attribute='name') | list)
 
-    # Cisco IOSvL2 template creation (unchanged, but included for context)
     - name: Create Cisco IOSvL2 template if it doesn't exist
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
@@ -60,7 +51,7 @@
           name: "{{ cisco_iosvl2_template_name }}"
           compute_id: "local"
           template_type: "qemu"
-          hda_disk_image: "{{ cisco_iosvl2_image_path }}/{{ cisco_iosvl2_image_name }}"  # Full path to the image
+          hda_disk_image: "{{ cisco_iosvl2_image_path }}/{{ cisco_iosvl2_image_name }}"
           symbol: ":/symbols/multilayer_switch.svg"
           category: "switch"
           adapters: 16
@@ -68,8 +59,7 @@
           console_type: "telnet"
           qemu_path: "{{ qemu_path }}"
           platform: "x86_64"
-        status_code: [200, 201, 409]  # 409 for already exists
-      register: iosvl2_template_result
+        status_code: [200, 201, 409]
       when: cisco_iosvl2_template_name not in (existing_templates.json | map(attribute='name') | list)
 
     - name: Get updated template list
@@ -96,9 +86,8 @@
         method: POST
         body_format: json
         body: "{{ {'name': item.name, 'x': item.x|int, 'y': item.y|int} | to_json }}"
-        status_code: [201, 409]  # 409 for already exists
+        status_code: [201, 409]
       loop: "{{ devices }}"
-      register: device_results
 
     - name: Deploy VPCS nodes
       uri:
@@ -108,7 +97,6 @@
         body: "{{ {'name': item.name, 'node_type': 'vpcs', 'compute_id': 'local', 'x': item.x|int, 'y': item.y|int} | to_json }}"
         status_code: 201
       loop: "{{ vpcs_nodes }}"
-      register: vpcs_results
 
     - name: Get all nodes in the project
       uri:
@@ -131,51 +119,8 @@
     - name: Create port mapping for each device
       set_fact:
         port_map: "{{ port_map | default({}) | combine({item.json.name: item.json.ports | map(attribute='port_number') | map('int') | list}) }}"
-      loop: "{{ node_details.results }}"
-
-    - name: Create device interface map
-      set_fact:
-        device_interface_map: "{{ device_interface_map | default({}) | combine({item.name: (item.enabled_interfaces | default(2))}) }}"
-      loop: "{{ devices + vpcs_nodes }}"
-
-    - name: Get detailed information for each node
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ item.node_id }}"
-        method: GET
-      loop: "{{ all_nodes.json }}"
-      register: node_details
-
-    - name: Create port mapping for each device
-      set_fact:
-        port_map: "{{ port_map | default({}) | combine({item.json.name: item.json.ports | map(attribute='port_number') | map('int') | list}) }}"
         adapter_map: "{{ adapter_map | default({}) | combine({item.json.name: item.json.ports | map(attribute='adapter_number') | map('int') | list}) }}"
       loop: "{{ node_details.results }}"
-
-    - name: Debug port and adapter mapping
-      debug:
-        msg: |
-          Port Map: {{ port_map | to_yaml }}
-          Adapter Map: {{ adapter_map | to_yaml }}
-
-    - name: Configure additional interfaces on Core routers
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/files/configs/startup-config.cfg"
-        method: POST
-        body: |
-          configure terminal
-          interface FastEthernet1/0
-          no shutdown
-          exit
-          interface FastEthernet2/0
-          no shutdown
-          exit
-          end
-          copy running-config startup-config
-        status_code: [200, 201, 204]
-      loop:
-        - Core1
-        - Core2
-      register: interface_config_results
 
     - name: Configure additional interfaces on Core routers
       uri:
@@ -190,8 +135,7 @@
       loop:
         - Core1
         - Core2
-      register: core_config_results
-    
+
     - name: Reload Core routers
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/reload"
@@ -200,7 +144,6 @@
       loop:
         - Core1
         - Core2
-      register: core_reload_results
 
     - name: Wait for Core routers to come back online
       wait_for:
@@ -220,14 +163,6 @@
         port_map: "{{ port_map | combine({item.json.name: item.json.ports | map(attribute='port_number') | map('int') | list}) }}"
         adapter_map: "{{ adapter_map | combine({item.json.name: item.json.ports | map(attribute='adapter_number') | map('int') | list}) }}"
       loop: "{{ updated_core_info.results }}"
-
-    - name: Debug interface configuration results
-      debug:
-        var: interface_config_results
-
-    - name: Debug reload results
-      debug:
-        var: reload_results
 
     - name: Create links between devices
       uri:
@@ -249,38 +184,11 @@
               }
             ]
           }
-        status_code: [201, 409]  # 409 for already exists
+        status_code: [201, 409]
       loop: "{{ links }}"
-      register: link_results
-
-    - name: Debug link creation results
-      debug:
-        msg: "Link creation result for {{ item.item.node_a }} (port {{ item.item.port_a }}) to {{ item.item.node_b }} (port {{ item.item.port_b }}): {{ item.status }}"
-      loop: "{{ link_results.results }}"
-      loop_control:
-        label: "{{ item.item.node_a }} to {{ item.item.node_b }}"
 
     - name: Start the project
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/open"
         method: POST
         status_code: [200, 201]
-      register: start_result
-
-    - name: Verify project is running
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}"
-        method: GET
-        status_code: 200
-      register: final_project_status
-
-    - name: Project deployment summary
-      debug:
-        msg: |
-          GNS3 Enterprise Network Deployment Summary:
-          - Project Name: {{ gns3_project_name }}
-          - Project ID: {{ project_id }}
-          - Devices Deployed: {{ devices | length }}
-          - VPCS Nodes Deployed: {{ vpcs_nodes | length }}
-          - Total Links Created: {{ links | length }}
-          - Project Status: {{ final_project_status.json.status }}
