@@ -80,11 +80,32 @@
         status_code: [201, 409]
       loop: "{{ range(1, 5)|list }}"
 
+    - name: Create Scada-LTS template
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
+        method: POST
+        body_format: json
+        body: 
+          name: "Scada-LTS"
+          compute_id: "local"
+          template_type: "docker"
+          image: "kamiljarmusik/scadalts-2.6.18-mysql-8"
+          adapters: 1
+          console_type: "http"
+        status_code: [200, 201, 409]
+      when: "'Scada-LTS' not in (existing_templates.json | map(attribute='name') | list)"
+
     - name: Get updated template list
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
         method: GET
       register: updated_templates
+
+    - name: Update template ID map
+      set_fact:
+        template_id_map: "{{ template_id_map | default({}) | combine({'Scada-LTS': item.template_id}) }}"
+      loop: "{{ updated_templates.json }}"
+      when: item.name == 'Scada-LTS'
 
     - name: Create template ID map
       set_fact:
