@@ -40,8 +40,17 @@ ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 ## Troubleshooting
 
 1. Add different ports to OpenPLC docker.
+Actual troubleshooting:
+
+1. Add different ports to OpenPLC docker.
 
 ## To Do
+
+1. Improve architecture:
+    a. [Add Digital Twin](https://github.com/borgestassio/Wind-Turbine-Control)
+    b. Test Codesys PLC
+2. Add security layer
+3. Add automation layer
 
 1. Improve architecture 
 2. Improve architecture:
