@@ -44,8 +44,9 @@ ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 ## To Do
 
 1. Improve architecture 
-1. Improve architecture:
+2. Improve architecture:
     a. [Add Digital Twin](https://github.com/borgestassio/Wind-Turbine-Control)
     b. Test Codesys PLC
-2. Add security layer
-3. Add automation layer
+3. Add configuration files (e.g., VLAN, segregations, etc.)
+4. Add security layer based on Ansible playbooks
+5. Add automation layer based on GitLab pipelines.
