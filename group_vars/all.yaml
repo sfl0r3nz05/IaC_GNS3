@@ -9,7 +9,7 @@ cisco_iosvl2_image_path: "/opt/gns3/images/QEMU"
 
 plc_template_name: "OpenPLC"
 
-gns3_project_name: "enterprise_network_v11"
+gns3_project_name: "enterprise_network_v18"
 
 qemu_path: "/usr/bin/qemu-system-x86_64"
 
@@ -22,16 +22,16 @@ devices:
   - { name: "Access2", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: 200 }
   - { name: "Access3", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: 200 }
   - { name: "Access4", template: "{{ cisco_iosvl2_template_name }}", x: 300, y: 200 }
-  - { name: "PLC1", template: "{{ plc_template_name }}", x: -300, y: 300 }
-  - { name: "PLC2", template: "{{ plc_template_name }}", x: -100, y: 300 }
-  - { name: "PLC3", template: "{{ plc_template_name }}", x: 100, y: 300 }
-  - { name: "PLC4", template: "{{ plc_template_name }}", x: 300, y: 300 }
+  - { name: "PLC1", template: "{{ plc_template_name }}", x: -400, y: 400 }
+  - { name: "PLC2", template: "{{ plc_template_name }}", x: -200, y: 400 }
+  - { name: "PLC3", template: "{{ plc_template_name }}", x: 200, y: 400 }
+  - { name: "PLC4", template: "{{ plc_template_name }}", x: 400, y: 400 }
 
 vpcs_nodes:
-  - { name: "PC 1", x: -300, y: 400 }
-  - { name: "PC 2", x: -100, y: 400 }
-  - { name: "PC 3", x: 100, y: 400 }
-  - { name: "PC 4", x: 300, y: 400 }
+  - { name: "PC1", x: -300, y: 400 }
+  - { name: "PC2", x: -100, y: 400 }
+  - { name: "PC3", x: 100, y: 400 }
+  - { name: "PC4", x: 300, y: 400 }
 
 links:
   - { node_a: "Core1", port_a: 0, node_b: "Core2", port_b: 0 }
