@@ -91,25 +91,6 @@
       when: item.name in [cisco_7200_template_name, cisco_iosvl2_template_name, plc_template_name]
       register: template_id_result
 
-    - name: Debug template ID finding process
-      debug:
-        msg: 
-          - "Template name: {{ item.name }}"
-          - "Template ID: {{ item.template_id }}"
-          - "Matched: {{ item.name in [cisco_7200_template_name, cisco_iosvl2_template_name, plc_template_name] }}"
-      loop: "{{ updated_templates.json }}"
-
-    - name: Debug template ID map
-      debug:
-        var: template_id_map
-
-    - name: Debug template name variables
-      debug:
-        msg:
-          - "cisco_7200_template_name: {{ cisco_7200_template_name }}"
-          - "cisco_iosvl2_template_name: {{ cisco_iosvl2_template_name }}"
-          - "plc_template_name: {{ plc_template_name }}"
-
     - name: Deploy devices
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/templates/{{ template_id_map[item.template] | default('') }}"
@@ -119,12 +100,6 @@
         status_code: [201, 409]
       loop: "{{ devices }}"
       when: template_id_map[item.template] is defined
-
-    - name: Report undeployed devices
-      debug:
-        msg: "Warning: Device {{ item.name }} with template {{ item.template }} was not deployed"
-      loop: "{{ devices }}"
-      when: template_id_map[item.template] is not defined
 
     - name: Deploy VPCS nodes
       uri:

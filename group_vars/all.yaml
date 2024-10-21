@@ -9,7 +9,7 @@ cisco_iosvl2_image_path: "/opt/gns3/images/QEMU"
 
 plc_template_name: "OpenPLC"
 
-gns3_project_name: "enterprise_network_v18"
+gns3_project_name: "enterprise_network_v2"
 
 qemu_path: "/usr/bin/qemu-system-x86_64"
 
