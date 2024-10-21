@@ -62,21 +62,23 @@
         status_code: [200, 201, 409]
       when: cisco_iosvl2_template_name not in (existing_templates.json | map(attribute='name') | list)
 
-    - name: Create PLC template if it doesn't exist
+    - name: Create or update PLC templates
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
         method: POST
         body_format: json
-        body:
-          name: "{{ plc_template_name }}"
-          compute_id: "local"
-          template_type: "docker"
-          image: "wzy318/openplc:latest"
-          symbol: ":/symbols/72238-200.svg"
-          adapters: 1
-          console_type: "http"
+        body: "{{ {
+          'name': plc_template_name + '_' + item|string,
+          'compute_id': 'local',
+          'template_type': 'docker',
+          'image': 'sflorenz05/open-plc:v0.1',
+          'adapters': 1,
+          'console_type': 'http',
+          'console_http_port': (8080 + item|int)|int,
+          'custom_adapters': [{'adapter_number': 0, 'port_name': 'eth0'}]
+        } | to_json }}"
         status_code: [201, 409]
-      when: plc_template_name not in (existing_templates.json | map(attribute='name') | list)
+      loop: "{{ range(1, 5)|list }}"
 
     - name: Get updated template list
       uri:
@@ -84,12 +86,11 @@
         method: GET
       register: updated_templates
 
-    - name: Find template IDs
+    - name: Create template ID map
       set_fact:
         template_id_map: "{{ template_id_map | default({}) | combine({item.name: item.template_id}) }}"
       loop: "{{ updated_templates.json }}"
-      when: item.name in [cisco_7200_template_name, cisco_iosvl2_template_name, plc_template_name]
-      register: template_id_result
+      when: item.name in [cisco_7200_template_name, cisco_iosvl2_template_name] or item.name.startswith(plc_template_name)
 
     - name: Deploy devices
       uri:
