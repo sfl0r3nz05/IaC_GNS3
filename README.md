@@ -39,8 +39,6 @@ ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 
 ## Troubleshooting
 
-1. Add different ports to OpenPLC docker.
-
 ## To Do
 
 1. Improve architecture:
