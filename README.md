@@ -120,6 +120,9 @@ failed: [gns3_vm] (item={'node_a': 'Dist2', 'port_a': 4, 'node_b': 'Access4', 'p
 ## To Do
 
 1. Improve architecture 
+1. Improve architecture:
+    a. [Add Digital Twin](https://github.com/borgestassio/Wind-Turbine-Control)
+    b. Test Codesys PLC
 2. Add security layer
 3. Add automation layer
 
