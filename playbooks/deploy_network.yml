@@ -199,20 +199,3 @@
           }
         status_code: [201, 409]
       loop: "{{ links }}"
-
-    - name: Start the project
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/open"
-        method: POST
-        status_code: [200, 201]
-
-    - name: Start PLC devices
-      uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/start"
-        method: POST
-        status_code: [200, 201, 204]
-      loop:
-        - PLC1
-        - PLC2
-        - PLC3
-        - PLC4

@@ -1,49 +1,48 @@
----
 cisco_7200_template_name: "Cisco 7200"
 cisco_7200_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
 cisco_7200_image_path: "/opt/gns3/images/IOS"
-
 cisco_iosvl2_template_name: "Cisco IOSvL2 15.2(4.0.55)E"
 cisco_iosvl2_image_name: "vios_l2-adventerprisek9-m.vmdk.SSA.152-4.0.55.E"
 cisco_iosvl2_image_path: "/opt/gns3/images/QEMU"
-
 plc_template_name: "OpenPLC"
-
 gns3_project_name: "enterprise_network_v0"
-
 qemu_path: "/usr/bin/qemu-system-x86_64"
-
 devices:
-  - { name: "Core1", template: "{{ cisco_7200_template_name }}", x: -100, y: -200 }
-  - { name: "Core2", template: "{{ cisco_7200_template_name }}", x: 100, y: -200 }
-  - { name: "Dist1", template: "{{ cisco_iosvl2_template_name }}", x: -200, y: 0 }
-  - { name: "Dist2", template: "{{ cisco_iosvl2_template_name }}", x: 200, y: 0 }
-  - { name: "Access1", template: "{{ cisco_iosvl2_template_name }}", x: -300, y: 200 }
-  - { name: "Access2", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: 200 }
-  - { name: "Access3", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: 200 }
-  - { name: "Access4", template: "{{ cisco_iosvl2_template_name }}", x: 300, y: 200 }
-  - { name: "PLC1", template: "{{ plc_template_name }}", x: -400, y: 400 }
-  - { name: "PLC2", template: "{{ plc_template_name }}", x: -200, y: 400 }
-  - { name: "PLC3", template: "{{ plc_template_name }}", x: 200, y: 400 }
-  - { name: "PLC4", template: "{{ plc_template_name }}", x: 400, y: 400 }
-
+  - { name: "Core1", template: "{{ cisco_7200_template_name }}", x: -100, y: -300 }
+  - { name: "Core2", template: "{{ cisco_7200_template_name }}", x: 100, y: -300 }
+  - { name: "Storage1", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: -100 }
+  - { name: "Storage2", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: -100 }
+  - { name: "Dist1", template: "{{ cisco_iosvl2_template_name }}", x: -200, y: 100 }
+  - { name: "Dist2", template: "{{ cisco_iosvl2_template_name }}", x: 200, y: 100 }
+  - { name: "Access1", template: "{{ cisco_iosvl2_template_name }}", x: -300, y: 300 }
+  - { name: "Access2", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: 300 }
+  - { name: "Access3", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: 300 }
+  - { name: "Access4", template: "{{ cisco_iosvl2_template_name }}", x: 300, y: 300 }
+  - { name: "PLC1", template: "{{ plc_template_name }}", x: -400, y: 500 }
+  - { name: "PLC2", template: "{{ plc_template_name }}", x: -200, y: 500 }
+  - { name: "PLC3", template: "{{ plc_template_name }}", x: 200, y: 500 }
+  - { name: "PLC4", template: "{{ plc_template_name }}", x: 400, y: 500 }
 vpcs_nodes:
-  - { name: "PC1", x: -300, y: 400 }
-  - { name: "PC2", x: -100, y: 400 }
-  - { name: "PC3", x: 100, y: 400 }
-  - { name: "PC4", x: 300, y: 400 }
-
+  - { name: "PC1", x: -300, y: 500 }
+  - { name: "PC2", x: -100, y: 500 }
+  - { name: "PC3", x: 100, y: 500 }
+  - { name: "PC4", x: 300, y: 500 }
 links:
   - { node_a: "Core1", port_a: 0, node_b: "Core2", port_b: 0 }
-  - { node_a: "Core1", port_a: 1, node_b: "Dist1", port_b: 0 }
-  - { node_a: "Core1", port_a: 2, node_b: "Dist2", port_b: 0 }
-  - { node_a: "Core2", port_a: 1, node_b: "Dist1", port_b: 1 }
-  - { node_a: "Core2", port_a: 2, node_b: "Dist2", port_b: 1 }
-  - { node_a: "Dist1", port_a: 2, node_b: "Dist2", port_b: 2 }
-  - { node_a: "Dist1", port_a: 3, node_b: "Access1", port_b: 0 }
-  - { node_a: "Dist1", port_a: 4, node_b: "Access2", port_b: 0 }
-  - { node_a: "Dist2", port_a: 3, node_b: "Access3", port_b: 0 }
-  - { node_a: "Dist2", port_a: 4, node_b: "Access4", port_b: 0 }
+  - { node_a: "Core1", port_a: 1, node_b: "Storage1", port_b: 0 }
+  - { node_a: "Core1", port_a: 2, node_b: "Storage2", port_b: 0 }
+  - { node_a: "Core2", port_a: 1, node_b: "Storage1", port_b: 1 }
+  - { node_a: "Core2", port_a: 2, node_b: "Storage2", port_b: 1 }
+  - { node_a: "Storage1", port_a: 4, node_b: "Storage2", port_b: 4 }
+  - { node_a: "Storage1", port_a: 2, node_b: "Dist1", port_b: 2 }
+  - { node_a: "Storage1", port_a: 3, node_b: "Dist2", port_b: 2 }
+  - { node_a: "Storage2", port_a: 2, node_b: "Dist1", port_b: 3 }
+  - { node_a: "Storage2", port_a: 3, node_b: "Dist2", port_b: 3 }
+  - { node_a: "Dist1", port_a: 4, node_b: "Dist2", port_b: 4 }
+  - { node_a: "Dist1", port_a: 0, node_b: "Access1", port_b: 0 }
+  - { node_a: "Dist1", port_a: 1, node_b: "Access2", port_b: 0 }
+  - { node_a: "Dist2", port_a: 0, node_b: "Access3", port_b: 0 }
+  - { node_a: "Dist2", port_a: 1, node_b: "Access4", port_b: 0 }
   - { node_a: "Access1", port_a: 1, node_b: "PC1", port_b: 0 }
   - { node_a: "Access2", port_a: 1, node_b: "PC2", port_b: 0 }
   - { node_a: "Access3", port_a: 1, node_b: "PC3", port_b: 0 }
@@ -52,7 +51,6 @@ links:
   - { node_a: "Access2", port_a: 2, node_b: "PLC2", port_b: 0 }
   - { node_a: "Access3", port_a: 2, node_b: "PLC3", port_b: 0 }
   - { node_a: "Access4", port_a: 2, node_b: "PLC4", port_b: 0 }
-
 project_config:
   name: "{{ gns3_project_name }}"
   auto_close: true
