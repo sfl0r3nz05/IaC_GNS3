@@ -9,13 +9,13 @@ scadalts_template_name: "Scada-LTS"
 gns3_project_name: "enterprise_network_v0"
 qemu_path: "/usr/bin/qemu-system-x86_64"
 devices:
-  - { name: "Core1", template: "{{ cisco_7200_template_name }}", x: -100, y: -300 }
-  - { name: "Core2", template: "{{ cisco_7200_template_name }}", x: 100, y: -300 }
-  - { name: "Storage1", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: -100 }
-  - { name: "Scada-LTS", template: "{{ scadalts_template_name }}", x: -300, y: -100 }
-  - { name: "Storage2", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: -100 }
-  - { name: "Dist1", template: "{{ cisco_iosvl2_template_name }}", x: -200, y: 100 }
-  - { name: "Dist2", template: "{{ cisco_iosvl2_template_name }}", x: 200, y: 100 }
+  - { name: "Core1", template: "{{ cisco_7200_template_name }}", x: -150, y: -300 }
+  - { name: "Core2", template: "{{ cisco_7200_template_name }}", x: 150, y: -300 }
+  - { name: "Storage1", template: "{{ cisco_iosvl2_template_name }}", x: -150, y: -100 }
+  - { name: "Scada-LTS", template: "{{ scadalts_template_name }}", x: -350, y: -100 }
+  - { name: "Storage2", template: "{{ cisco_iosvl2_template_name }}", x: 150, y: -100 }
+  - { name: "Dist1", template: "{{ cisco_iosvl2_template_name }}", x: -150, y: 100 }
+  - { name: "Dist2", template: "{{ cisco_iosvl2_template_name }}", x: 150, y: 100 }
   - { name: "Access1", template: "{{ cisco_iosvl2_template_name }}", x: -300, y: 300 }
   - { name: "Access2", template: "{{ cisco_iosvl2_template_name }}", x: -100, y: 300 }
   - { name: "Access3", template: "{{ cisco_iosvl2_template_name }}", x: 100, y: 300 }

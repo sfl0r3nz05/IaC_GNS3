@@ -26,16 +26,29 @@ sudo apt-get -y install python-is-python3
 └── README.md
 ```
 
+## Current status of automatic deployment of Spine-leaf architecture
+
+![alt text](documentation/actual_net.png)
+
 ## Deployment
 
 ```
 ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 ```
 
-## Current status of automatic deployment of Spine-leaf architecture
-
-![alt text](documentation/actual_net.png)
-
+- One network is deployed:
+    - OpenPLC:
+        1. Configure OpenPLC to change HTTP port in the container to `8080`.
+        2. Play OpenPLC:
+            - URL: http://{GNS3_Server_IP}:{PORT}/login
+            - username: openplc
+            - password: openplc
+    - Scada-LTS:
+        1. Configure Scada-LTS to change HTTP port in the container to `8080`.
+        2. Play Scada-LTS:
+            - URL: http://{GNS3_Server_IP}:{PORT}/Scada-LTS/login.htm
+            - username: admin
+            - password: admin
 
 ## Troubleshooting
 

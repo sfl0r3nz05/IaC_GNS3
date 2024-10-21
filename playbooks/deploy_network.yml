@@ -101,17 +101,11 @@
         method: GET
       register: updated_templates
 
-    - name: Update template ID map
-      set_fact:
-        template_id_map: "{{ template_id_map | default({}) | combine({'Scada-LTS': item.template_id}) }}"
-      loop: "{{ updated_templates.json }}"
-      when: item.name == 'Scada-LTS'
-
     - name: Create template ID map
       set_fact:
         template_id_map: "{{ template_id_map | default({}) | combine({item.name: item.template_id}) }}"
       loop: "{{ updated_templates.json }}"
-      when: item.name in [cisco_7200_template_name, cisco_iosvl2_template_name] or item.name.startswith(plc_template_name)
+      when: item.name in [cisco_7200_template_name, cisco_iosvl2_template_name, plc_template_name, scadalts_template_name]
 
     - name: Deploy devices
       uri:
