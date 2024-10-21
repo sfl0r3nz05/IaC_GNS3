@@ -1,5 +1,5 @@
 ---
-- name: Deploy Spine-Leaf Architecture in GNS3
+- name: Deploy Spine-Leaf Architecture with PLCs in GNS3
   hosts: gns3_servers
   gather_facts: no
   vars_files:
@@ -62,32 +62,44 @@
         status_code: [200, 201, 409]
       when: cisco_iosvl2_template_name not in (existing_templates.json | map(attribute='name') | list)
 
+    - name: Create PLC template if it doesn't exist
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
+        method: POST
+        body_format: json
+        body:
+          name: "{{ plc_template_name }}"
+          compute_id: "local"
+          template_type: "docker"
+          image: "wzy318/openplc:latest"
+          symbol: ":/symbols/72238-200.svg"
+          adapters: 1
+          console_type: "http"
+        status_code: [201, 409]
+      when: plc_template_name not in (existing_templates.json | map(attribute='name') | list)
+
     - name: Get updated template list
       uri:
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/templates"
         method: GET
       register: updated_templates
 
-    - name: Find C7200 template IDs
+    - name: Find template IDs
       set_fact:
-        cisco_7200_template_id: "{{ item.template_id }}"
+        template_id_map: "{{ template_id_map | default({}) | combine({item.name: item.template_id}) }}"
       loop: "{{ updated_templates.json }}"
-      when: item.name == cisco_7200_template_name
-
-    - name: Find IOSvL2 template ID
-      set_fact:
-        cisco_iosvl2_template_id: "{{ item.template_id }}"
-      loop: "{{ updated_templates.json }}"
-      when: item.name == cisco_iosvl2_template_name
+      when: item.name in [cisco_7200_template_name, cisco_iosvl2_template_name, plc_template_name]
+      register: template_id_result
 
     - name: Deploy devices
       uri:
-        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/templates/{% if item.template == cisco_7200_template_name %}{{ cisco_7200_template_id }}{% else %}{{ cisco_iosvl2_template_id }}{% endif %}"
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/templates/{{ template_id_map[item.template] | default('') }}"
         method: POST
         body_format: json
         body: "{{ {'name': item.name, 'x': item.x|int, 'y': item.y|int} | to_json }}"
         status_code: [201, 409]
       loop: "{{ devices }}"
+      when: template_id_map[item.template] is defined
 
     - name: Deploy VPCS nodes
       uri:
@@ -192,3 +204,14 @@
         url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/open"
         method: POST
         status_code: [200, 201]
+
+    - name: Start PLC devices
+      uri:
+        url: "{{ gns3_url }}:{{ gns3_port }}/v2/projects/{{ project_id }}/nodes/{{ device_id_map[item] }}/start"
+        method: POST
+        status_code: [200, 201, 204]
+      loop:
+        - PLC1
+        - PLC2
+        - PLC3
+        - PLC4
