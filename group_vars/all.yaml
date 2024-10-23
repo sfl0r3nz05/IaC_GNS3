@@ -1,3 +1,4 @@
+gns3_project_name: "enterprise_network_v0"
 cisco_7200_template_name: "Cisco 7200"
 cisco_7200_image_name: "c7200-adventerprisek9-mz.153-3.XB12.image"
 cisco_7200_image_path: "/opt/gns3/images/IOS"
@@ -6,7 +7,6 @@ cisco_iosvl2_image_name: "vios_l2-adventerprisek9-m.vmdk.SSA.152-4.0.55.E"
 cisco_iosvl2_image_path: "/opt/gns3/images/QEMU"
 plc_template_name: "OpenPLC"
 scadalts_template_name: "Scada-LTS"
-gns3_project_name: "enterprise_network_v0"
 qemu_path: "/usr/bin/qemu-system-x86_64"
 devices:
   - { name: "Core1", template: "{{ cisco_7200_template_name }}", x: -150, y: -300 }

@@ -1,16 +1,31 @@
 # DevSecOps for Infrastructure As Code
 
+![alt text](documentation/Ansible.png)
+
 ## Prerequisites
 
-Ansible 2.9 or higher
-GNS3 2.2 or higher
-GNS3 VM running and accessible
+- Ansible 2.9 or higher
 
-```console
-ansible-galaxy collection install davidban77.gns3
-sudo apt install sshpass
-sudo apt-get -y install python-is-python3
-```
+    ```console
+    sudo apt install python3-pip
+    python3 -m pip install --user ansible
+    python3 -m pip install --user ansible-core
+    ```
+
+- Requirements
+
+    ```console
+    sudo apt install sshpass
+    sudo apt-get -y install python-is-python3
+    ```
+
+- Add-on
+
+    ```console
+    ansible-galaxy collection install davidban77.gns3
+    ```
+
+- GNS3 2.2 or higher as VM Server
 
 ## Project Structure
 
@@ -33,7 +48,7 @@ sudo apt-get -y install python-is-python3
 ## Deployment
 
 ```
-ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
+ansible-playbook playbooks/deploy_network.yml --ask-pass
 ```
 
 - One network is deployed:
@@ -61,3 +76,15 @@ ansible-playbook -vvv playbooks/deploy_network.yml --ask-pass
 3. Add configuration files (e.g., VLAN, segregations, etc.)
 4. Add security layer based on Ansible playbooks
 5. Add automation layer based on GitLab pipelines.
+6. Avoid ansible controller installation:
+    
+    `docker pull adosztal/network_automation:latest`
+    
+    ```console
+    docker run -it --rm --name automation \
+        -v "$(pwd)/IaC_GNS3":/root/ansible \
+        --workdir /root/ansible \
+        -e ANSIBLE_HOST_KEY_CHECKING=False \
+        adosztal/network_automation \
+        bash -c "apt-get update --allow-insecure-repositories && apt-get install -y sshpass && ansible-playbook playbooks/deploy_network.yml -i inventory/hosts --ask-pass"
+    ```
